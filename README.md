@@ -9,9 +9,37 @@
 ### Benchmark Results
 
 ### Getting Started
-[1] Follow instructions HERE to prepare the environment. <br>
+[1] Installation <br>
+```
+conda create -n lgocc python=3.8     
+conda activate lgocc
+pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 --index-url https://download.pytorch.org/whl/cu118
+pip install git+https://github.com/openai/CLIP.git
+pip install openmim
+mim install mmcv==2.0.1
+mim install mmdet==3.0.0
+mim install mmsegmentation==1.0.0
+mim install mmdet3d==1.1.1
+```
 [2] Data Preparation. <br>
-
+Please download the **nuScenes full dataset v1.0** from the [official website](https://www.nuscenes.org/download) and obtain the occupancy annotations from [SurroundOcc](https://github.com/weiyithu/SurroundOcc). The dataset directory structure is as follows:
+```
+LGOcc
+├── ...
+├── data/
+│   ├── nuscenes_infos_train_sweeps_occ.pkl
+│   ├── nuscenes_infos_val_sweeps_occ.pkl
+│   ├── nuscenes/
+│   │   ├── maps/
+│   │   ├── samples/
+│   │   ├── sweeps/
+│   │   ├── v1.0-test/
+|   |   ├── v1.0-trainval/
+│   ├── nuscenes_occ/
+│   │   ├── samples/
+│   │   |   ├── xxxxxxxx.pcd.bin.npy
+│   │   |   ├── ...
+```
 
 ### Train
 
