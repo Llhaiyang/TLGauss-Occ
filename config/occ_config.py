@@ -1,6 +1,6 @@
-data_root = "/mnt/ikcdir/nu/dataset/ns_data/"
-anno_root = "/mnt/ikcdir/nu/dataset/ns_cam/"
-occ_path = "/mnt/ikcdir/nu/dataset/ns_occ/nuscenes_occ/samples/"
+data_root = "/data/"
+anno_root = "/data/"
+occ_path = "/data/nuscenes_occ/samples/"
 batch_size = 1
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True
@@ -71,7 +71,7 @@ max_epochs = 30
 print_freq = 50
 optimizer = dict(
     optimizer = dict(
-        type="AdamW", lr=4e-4, weight_decay=0.01,
+        type="AdamW", lr=2e-4, weight_decay=0.01,
     ),
     paramwise_cfg=dict(
         custom_keys={
@@ -138,7 +138,7 @@ scale_range = [0.01, 2.5]
 xyz_coordinate = 'cartesian'
 phi_activation = 'sigmoid'
 include_opa = True
-load_from = '/home/dgg/haiyang/code/r101_dcn_fcos3d_pretrain.pth'
+load_from = '/ckpts/r101_dcn_fcos3d_pretrain.pth'
 semantics = True
 semantic_dim = 17
 
@@ -147,8 +147,34 @@ label = ['barrier', 'bicycle', 'bus', 'car', 'construction_vehicle',
          'driveable_surface', 'other_flat', 'sidewalk', 'terrain', 'manmade',
          'vegetation', 'empty']
 
+num_anchor = 6400
+downsample_points = [num_anchor*2/2, num_anchor*2/4, num_anchor*2/8]
+
+rwkv = dict(
+    type="Self_RWVK",
+    pc_range=pc_range,
+    grid_size=[0.5, 0.5, 0.5],
+    n_embd=embed_dims,
+    n_head=8,
+    n_layer=8,
+    conv_embed_channels=embed_dims,
+    num_layers=1,
+    kernel_size=[3, 5],
+    dilation=[3, 5]
+)
+
+clg = dict(
+    type='CascadeLanguageGuidance',
+    embed_dim=embed_dims,
+    downsample_points=downsample_points,
+    sa_k=[16, 8, 4],
+    # sa_k=[16, 16, 16],
+    # sa_k=[4, 8, 16],
+    text_dim=512,
+)
+
 model = dict(
-    type='BEVSegmentor',
+    type='TLGaussOcc',
     use_text=True,
     label=label,
     freeze_lifter=True,
@@ -177,7 +203,7 @@ model = dict(
     ),
     lifter=dict(
         type='GaussianLifterV2',
-        num_anchor=6400,
+        num_anchor=num_anchor,
         embed_dims=embed_dims,
         anchor_grad=False,
         feat_grad=False,
@@ -210,8 +236,9 @@ model = dict(
                 out_channels=[embed_dims] * 4,
                 upsample_strides=[0.5, 1, 2, 4])),
         initializer_img_downsample=None,
+        pretrained_path='/ckpts/lifter_10.pth',
         deterministic=False,
-        random_samples=6400),
+        random_samples=num_anchor),
     encoder=dict(
         type='GaussianOccEncoder',
         anchor_encoder=dict(
@@ -275,39 +302,8 @@ model = dict(
             xyz_coordinate=xyz_coordinate,
             semantics_activation='identity',
         ),
-        # spconv_layer=dict(
-        #     type="SparseConv3D",
-        #     in_channels=embed_dims,
-        #     embed_channels=embed_dims,
-        #     pc_range=pc_range,
-        #     grid_size=[1.0, 1.0, 1.0],
-        #     phi_activation=phi_activation,
-        #     xyz_coordinate=xyz_coordinate,
-        #     use_out_proj=True,
-        #     use_multi_layer=True,
-        # ),
-        self_rwkv_layer=dict(
-            type="Self_RWVK",
-            pc_range=pc_range,
-            grid_size=[0.5, 0.5, 0.5],
-            n_embd=128,
-            n_head=8,
-            n_layer=8,
-            conv_embed_channels=128,
-            num_layers=1,
-            kernel_size=[3, 5],
-            dilation=[3, 5]
-        ),
-        hierarchical_cross_attn=dict(
-            type='MultiLevelCrossAttention',
-            embed_dim=128,
-            downsample_points=[6400, 3200, 1600],
-            # downsample_points=[9600, 7200, 5400],
-            sa_k=[16, 8, 4],
-            # sa_k=[16, 16, 16],
-            # sa_k=[4, 8, 16],
-            text_dim=512,
-        ),
+        self_rwkv_layer=rwkv,
+        clg_layer=clg,
         num_decoder=num_decoder,
         operation_order=[
                             "identity",
@@ -325,15 +321,10 @@ model = dict(
                             "add",
                             "norm",
 
-                            # "identity",
-                            # "ffn",
-                            # "add",
-                            # "norm",
-
-                            # "identity",
-                            # "hierarchical_cross_attn",
-                            # "add",
-                            # "norm",
+                            "identity",
+                            "clg",
+                            "add",
+                            "norm",
 
                             "identity",
                             "ffn",
@@ -343,125 +334,6 @@ model = dict(
                             "refine",
                         ] * num_decoder,
     ),
-    # encoder=dict(
-    #     type='GaussianOccEncoder',
-    #     anchor_encoder=dict(
-    #         type='SparseGaussian3DEncoder',
-    #         embed_dims=embed_dims,
-    #         include_opa=include_opa,
-    #         semantics=semantics,
-    #         semantic_dim=semantic_dim
-    #     ),
-    #     norm_layer=dict(type="LN", normalized_shape=embed_dims),
-    #     ffn=dict(
-    #         type="AsymmetricFFN",
-    #         in_channels=embed_dims,
-    #         embed_dims=embed_dims,
-    #         feedforward_channels=embed_dims * 4,
-    #         ffn_drop=0.1,
-    #         add_identity=False,
-    #         pre_norm=dict(type="LN"),
-    #         num_fcs=2,
-    #         act_cfg=dict(type="ReLU", inplace=True),
-    #     ),
-    #     deformable_model=dict(
-    #         type='DeformableFeatureAggregation',
-    #         embed_dims=embed_dims,
-    #         num_groups=num_groups,
-    #         num_levels=num_levels,
-    #         num_cams=6,
-    #         attn_drop=0.15,
-    #         use_deformable_func=use_deformable_func,
-    #         use_camera_embed=True,
-    #         residual_mode="none",
-    #         kps_generator=dict(
-    #             type="SparseGaussian3DKeyPointsGenerator",
-    #             embed_dims=embed_dims,
-    #             phi_activation=phi_activation,
-    #             xyz_coordinate=xyz_coordinate,
-    #             num_learnable_pts=6,
-    #             pc_range=pc_range,
-    #             scale_range=scale_range,
-    #             learnable_fixed_scale=6.0,
-    #             fix_scale=[
-    #                 [0, 0, 0],
-    #                 [0.45, 0, 0],
-    #                 [-0.45, 0, 0],
-    #                 [0, 0.45, 0],
-    #                 [0, -0.45, 0],
-    #                 [0, 0, 0.45],
-    #                 [0, 0, -0.45],
-    #             ],
-    #         ),
-    #     ),
-    #     refine_layer=dict(
-    #         type='SparseGaussian3DRefinementModuleV2',
-    #         embed_dims=embed_dims,
-    #         pc_range=pc_range,
-    #         scale_range=scale_range,
-    #         unit_xyz=[4.0, 4.0, 1.0],
-    #         semantics=semantics,
-    #         semantic_dim=semantic_dim,
-    #         include_opa=include_opa,
-    #         xyz_coordinate=xyz_coordinate,
-    #         semantics_activation='identity',
-    #     ),
-    #     lgp_layer=dict(
-    #         type='Local_Geometry_Perception_Block',
-    #         input_dim=128,
-    #         conv_embed_channels=128, 
-    #         kernel_size=3, 
-    #         dilation=[1, 2, 4],
-    #         pc_range=pc_range, 
-    #         grid_size=[0.5, 0.5, 0.5],
-    #     ),
-    #     sas_rwkv_layer=dict(
-    #         type='Semantic_aware_Spatial_RWKV_Block',
-    #         embed_dim=128,
-    #         downsample_points=[6400, 3200, 1600],
-    #         sa_k=[16, 8, 4],
-    #         text_dim=512,
-    #         n_head=[16, 32, 64],
-    #         self_rwkv_cfg=dict(
-    #             type="Self_RWVK_v2",
-    #             pc_range=pc_range,
-    #             grid_size=[0.5, 0.5, 0.5],
-    #             n_embd=128,
-    #             n_head=8,
-    #             n_layer=8,
-    #             num_layers=1,
-    #         ),
-    #     ),
-    #     num_decoder=num_decoder,
-    #     operation_order=[
-    #                         "identity",
-    #                         "deformable",
-    #                         "add",
-    #                         "norm",
-
-    #                         "identity",
-    #                         "ffn",
-    #                         "add",
-    #                         "norm",
-
-    #                         "identity",
-    #                         "lgp",
-    #                         "add",
-    #                         "norm",
-
-    #                         "identity",
-    #                         "sas_rwkv",
-    #                         "add",
-    #                         "norm",
-
-    #                         "identity",
-    #                         "ffn",
-    #                         "add",
-    #                         "norm",
-
-    #                         "refine",
-    #                     ] * num_decoder,
-    # ),
     head=dict(
         type='GaussianHead',
         apply_loss_type='random_1',
