@@ -48,3 +48,14 @@ TLGauss-Occ
 
 ### Acknowledgement
 This project is built upon the pioneering work of [GaussianFormer](https://github.com/huang-yh/GaussianFormer), [Vision-RWKV](https://github.com/OpenGVLab/Vision-RWKV), and [RWKV-LM](https://github.com/RWKV/RWKV-LM). We extend our gratitude to these projects for their contributions to the community.
+
+### Citation
+If our paper and code contribute to your research, please consider starring this repository ⭐ and citing our work:
+```
+@inproceedings{TLGauss-Occ,
+    title     = {TLGauss-Occ: Topology-Aware and Language-Guided 3D Gaussians for Semantic Occupancy Prediction},
+    author    = {},
+    year      = 2025,
+    booktitle = {}
+}
+```
