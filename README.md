@@ -47,3 +47,4 @@ TLGauss-Occ
 ### Eval
 
 ### Acknowledgement
+This project is built upon the pioneering work of [GaussianFormer](https://github.com/huang-yh/GaussianFormer), [Vision-RWKV](https://github.com/OpenGVLab/Vision-RWKV), and [RWKV-LM](https://github.com/RWKV/RWKV-LM). We extend our gratitude to these projects for their contributions to the community.
