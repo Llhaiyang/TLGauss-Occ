@@ -9,14 +9,12 @@ import spconv.pytorch as spconv
 from ..token_shift import OmniSpatialShift
 from ..utils import cartesian
 
-T_MAX = 6400
-# T_MAX = 3200
-# HEAD_SIZE = 32
+T_MAX = 12800
 HEAD_SIZE = 16
 
 wkv6_cuda = load(name="wkv6",
-                 sources=["/home/lhy/storage/occ_code/LGOcc/model/encoder/gaussian_encoder/rwkv_utils/cuda_v6/wkv6_op.cpp",
-                          "/home/lhy/storage/occ_code/LGOcc/model/encoder/gaussian_encoder/rwkv_utils/cuda_v6/wkv6_cuda.cu"],
+                 sources=["/model/encoder/gaussian_encoder/rwkv_utils/cuda_v6/wkv6_op.cpp",
+                          "/model/encoder/gaussian_encoder/rwkv_utils/cuda_v6/wkv6_cuda.cu"],
                  verbose=True, extra_cuda_cflags=["-res-usage", "--use_fast_math",
                                                   "-O3", "-Xptxas=-O3",
                                                   "--extra-device-vectorization", f"-D_N_={HEAD_SIZE}",
@@ -381,5 +379,6 @@ class AnisotropicModulator(nn.Module):
         geo_att = torch.cat([scales, rotations], dim=-1)
         modu_vec = self.mlp(geo_att)
         gate_vec = torch.sigmoid(modu_vec)
+
 
         return gate_vec
