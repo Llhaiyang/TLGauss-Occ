@@ -32,7 +32,7 @@ descriptions = {
 
 
 @SEGMENTORS.register_module()
-class BEVSegmentor(CustomBaseSegmentor):
+class TLGaussOcc(CustomBaseSegmentor):
 
     def __init__(
         self,
@@ -69,7 +69,7 @@ class BEVSegmentor(CustomBaseSegmentor):
 
         if self.use_text:
             print('Loading CLIP model......')
-            self.clip_pretrained, _ = clip.load("ViT-B/32", device='cuda', jit=False, download_root='/home/dgg/haiyang/code/ckpt/clip')
+            self.clip_pretrained, _ = clip.load("ViT-B/32", device='cuda', jit=False, download_root='/ckpt/clip')
             self._freeze(self.clip_pretrained)
             self.clip_pretrained.eval()
 
@@ -131,14 +131,6 @@ class BEVSegmentor(CustomBaseSegmentor):
                 text_features = torch.cat(text_features, dim=0).to(img_feats_reshaped[0])
             if text_features.dim() != 3:
                 language_features = text_features.unsqueeze(0).expand(B, -1, -1).to(img_feats_reshaped[0])
-            # enchanced_text_features = self.gat_enhancer(text_features, self.adj_matrix.to(text_features[0]))
-            # if enchanced_text_features.dim() != 3:
-            #     language_features = enchanced_text_features.unsqueeze(0).expand(B, -1, -1)
-
-            # if isinstance(self.text_features, list):
-            #     self.text_features = torch.cat(self.text_features, dim=0).to(img_feats_reshaped[0])
-            # if self.text_features.dim() != 3:
-            #     language_features = self.text_features.unsqueeze(0).expand(B, -1, -1).to(img_feats_reshaped[0])
 
             result.update({'language_features': language_features})
             # result.update({'T_proj_features': None,
