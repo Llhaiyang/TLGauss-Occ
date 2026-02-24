@@ -7,7 +7,7 @@
 ### Demo
 
 ### Benchmark Results
-
+![results](./assets/results.png)
 
 ### Getting Started
 [1] Installation <br>
