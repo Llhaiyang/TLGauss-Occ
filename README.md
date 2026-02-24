@@ -1,4 +1,4 @@
-## LGOcc: Language-aware Gaussian 3D Occupancy Prediction with Efficient Global Context Modeling
+## TLGauss-Occ: Topology-Aware and Language-Guided 3D Gaussians for Semantic Occupancy Prediction
 ### News
 - [2025/12/22]: Demo release.
 
