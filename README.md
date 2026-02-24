@@ -11,8 +11,8 @@
 ### Getting Started
 [1] Installation <br>
 ```
-conda create -n lgocc python=3.8     
-conda activate lgocc
+conda create -n tlgocc python=3.8     
+conda activate tlgocc
 pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 --index-url https://download.pytorch.org/whl/cu118
 pip install git+https://github.com/openai/CLIP.git
 pip install openmim
@@ -24,7 +24,7 @@ mim install mmdet3d==1.1.1
 [2] Data Preparation. <br>
 Please download the **nuScenes full dataset v1.0** from the [official website](https://www.nuscenes.org/download) and obtain the occupancy annotations from [SurroundOcc](https://github.com/weiyithu/SurroundOcc). The dataset directory structure is as follows:
 ```
-LGOcc
+TLGauss-Occ
 ├── ...
 ├── data/
 │   ├── nuscenes_infos_train_sweeps_occ.pkl
